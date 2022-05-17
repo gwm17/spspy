@@ -474,11 +474,14 @@ class SpancGUI(QMainWindow):
 		self.fileMenu = self.menuBar().addMenu("&File")
 		saveAction = QAction("&Save...",self)
 		openAction = QAction("&Open...",self)
+		saveFitAction = QAction("Save Fit Plot...", self)
 		self.fileMenu.addAction(saveAction)
 		self.fileMenu.addAction(openAction)
+		self.fileMenu.addAction(saveFitAction)
 		self.fileMenu.addAction("&Exit", self.close)
 		saveAction.triggered.connect(self.HandleSave)
 		openAction.triggered.connect(self.HandleOpen)
+		saveFitAction.triggered.connect(self.HandleSaveFit)
 		
 		self.addMenu = self.menuBar().addMenu("&New")
 		newTargetAction = QAction("New target...", self)
@@ -614,6 +617,11 @@ class SpancGUI(QMainWindow):
 				pickle.dump(self.spanc, savefile, pickle.HIGHEST_PROTOCOL)
 				savefile.close()
 
+	def HandleSaveFit(self):
+		fileName = QFileDialog.getSaveFileName(self, "Save Fit Image","./","Image Files (*.png, *.eps)")
+		if fileName[0]:
+			self.fitCanvas.fig.savefig(fileName[0])
+
 	def HandleOpen(self):
 		fileName = QFileDialog.getOpenFileName(self, "Open Input","./","Text Files (*.pickle)")
 		if fileName[0]:
@@ -690,7 +698,7 @@ class SpancGUI(QMainWindow):
 		xarray, yarray, uxarray, uyarray = self.spanc.PerformFits()
 		fitarray = np.linspace(np.amin(xarray), np.amax(xarray), 1000)
 		self.fitCanvas.axes.cla()
-		self.fitCanvas.axes.errorbar(xarray, yarray, yerr=uyarray, xerr=uxarray, marker="o", linestyle="None")
+		self.fitCanvas.axes.errorbar(xarray, yarray, yerr=uyarray, xerr=uxarray, marker="o", linestyle="None", elinewidth=2.0)
 		self.fitCanvas.axes.plot(fitarray, self.spanc.fitters[fit_type].EvaluateFunction(fitarray))
 		self.fitCanvas.axes.set_xlabel(r"$x$ (mm)")
 		self.fitCanvas.axes.set_ylabel(r"$\rho$ (cm)")
