@@ -1,8 +1,6 @@
-*.pickle
-*.txt
-!test_config.txt
-__pycache__
-*.sublime-project
-*.sublime-workspace
-!/etc/mass.txt
-!.gitignore
+.venv/
+__pycache__/
+.vscode/
+.vs/
+*.sps
+*.spanc
