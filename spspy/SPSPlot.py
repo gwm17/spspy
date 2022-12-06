@@ -45,6 +45,8 @@ class SPSPlot:
     def update_reactions(self) -> None:
         for datum in self.data.values():
             datum.rxn.update_parameters(self.beamEnergy, self.spsAngle, self.magneticField)
+            if datum.rxn.targetMaterial.name in self.targets:
+                datum.rxn.targetMaterial = self.targets[datum.rxn.targetMaterial.name]
             for ex in datum.excitations:
                 ex.kineticEnergy = datum.rxn.calculate_ejectile_KE(ex.excitation)
                 ex.rho = datum.rxn.convert_ejectile_KE_2_rho(ex.kineticEnergy)

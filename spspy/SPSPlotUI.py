@@ -182,6 +182,7 @@ class SPSPlotGUI(QMainWindow):
         targDia.new_target.connect(self.sps.add_target)
         if targDia.exec():
             self.update_target_table()
+            self.sps.update_reactions()
             self.update_plot() #in case a reaction is using the target
 
     def handle_run(self) -> None:
