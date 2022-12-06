@@ -2,6 +2,7 @@ from .SPSReaction import *
 from .SPSTarget import *
 from .data.NuclearData import *
 from dataclasses import dataclass, field
+import csv
 
 @dataclass
 class Excitation:
@@ -61,4 +62,10 @@ class SPSPlot:
         rho = datum.rxn.convert_ejectile_KE_2_rho(ke)
         datum.excitations.append(Excitation(excitation, ke, rho))
 
-
+    def export_reaction_data(self, fileName: str) -> None:
+        with open(fileName, "w", newline='') as outputFile:
+            csvWriter = csv.writer(outputFile, dialect="excel")
+            csvWriter.writerow(["Reaction", "Excitation(MeV)", "Rho(cm)", "EjectileKE(MeV)", "Z-Offset(cm)"])
+            for datum in self.data.values():
+                for point in datum.excitations:
+                    csvWriter.writerow([repr(datum.rxn), f"{point.excitation:.3f}", f"{point.rho:.3f}", f"{point.kineticEnergy:.3f}", f"{point.fpZ:.3f}"])

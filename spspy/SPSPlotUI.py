@@ -76,6 +76,11 @@ class SPSPlotGUI(QMainWindow):
         newReactionAction.triggered.connect(self.handle_new_reaction)
         newTargetAction.triggered.connect(self.handle_new_target)
 
+        self.exportMenu = self.menuBar().addMenu("&Export")
+        exportLevels = QAction("Export levels to csv...", self)
+        self.exportMenu.addAction(exportLevels)
+        exportLevels.triggered.connect(self.handle_export_levels)
+
     def create_inputs(self) -> None:
         inputLayout = QHBoxLayout()
         self.inputGroupBox = QGroupBox("Adjustable Inputs", self.plotTab)
@@ -109,7 +114,7 @@ class SPSPlotGUI(QMainWindow):
         self.exButton.toggle()
         self.keButton = QRadioButton("Ejectile Kinetic energy (MeV)", self.energyButtonGroup)
         self.keButton.toggled.connect(self.handle_ke_switch)
-        self.zButton = QRadioButton("Focal Plane Z Shift (mm)", self.energyButtonGroup)
+        self.zButton = QRadioButton("Focal Plane Z Shift (cm)", self.energyButtonGroup)
         self.zButton.toggled.connect(self.handle_z_switch)
         buttonLayout.addWidget(self.exButton)
         buttonLayout.addWidget(self.keButton)
@@ -208,6 +213,11 @@ class SPSPlotGUI(QMainWindow):
         if self.zButton.isChecked() and self.plotType != PlotType.PLOT_Z:
             self.plotType = PlotType.PLOT_Z
             self.update_plot()
+
+    def handle_export_levels(self) -> None:
+        fileName = QFileDialog.getSaveFileName(self, "Export Levels to CSV","./","Comma-Separated Values File (*.csv)")
+        if fileName[0]:
+            self.sps.export_reaction_data(fileName[0])
 
     def add_reaction(self, rxnParams: RxnParameters, targName: str) -> None:
         rxnParams.beamEnergy = self.bkeInput.value()
