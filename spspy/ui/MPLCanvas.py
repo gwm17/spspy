@@ -11,7 +11,7 @@ matplotlib.rcParams["ytick.color"] = "w"
 matplotlib.rcParams["text.color"] = "w"
 
 class MPLCanvas(FigureCanvasQTAgg):
-	def __init__(self, parent=None, width=5, height=4, dpi=100):
+	def __init__(self, parent=None, width=3, height=4, dpi=100):
 		self.fig = Figure(figsize=(width, height), dpi=dpi, edgecolor="black",linewidth=0.5)
 		self.axes = self.fig.add_subplot(111)
 		self.axes.spines['top'].set_visible(False)

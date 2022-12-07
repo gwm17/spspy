@@ -94,9 +94,9 @@ class ReactionDialog(QDialog):
             self.bfieldInput = QDoubleSpinBox(self.parameterGroupBox)
             self.bfieldInput.setRange(MINIMUM_MAG_FIELD, MAXIMUM_MAG_FIELD)
             self.bfieldInput.setDecimals(6)
-            parameterLayout.addRow("Beam KE(Mev)",self.bkeInput)
-            parameterLayout.addRow("Theta(deg)",self.thetaInput)
-            parameterLayout.addRow("Bfield(kG)",self.bfieldInput)
+            parameterLayout.addRow(QLabel("E<sub>beam</sub>(Mev)"),self.bkeInput)
+            parameterLayout.addRow("<p>&theta;<sub>SPS</sub>(deg)</p>",self.thetaInput)
+            parameterLayout.addRow("B(kG)",self.bfieldInput)
             self.parameterGroupBox.setLayout(parameterLayout)
             self.layout.addWidget(self.parameterGroupBox)
 

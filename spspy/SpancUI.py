@@ -110,7 +110,7 @@ class SpancGUI(QMainWindow):
         targetLayout = QVBoxLayout()
         self.targetTable = QTableWidget(self.targetGroup)
         self.targetTable.setColumnCount(6)
-        self.targetTable.setHorizontalHeaderLabels(["Layer1 Thickness(ug/cm^2", "Layer1 (Z, A, S)","Layer2 Thickness(ug/cm^2", "Layer2 (Z, A, S)","Layer3 Thickness(ug/cm^2", "Layer3 (Z, A, S)"])
+        self.targetTable.setHorizontalHeaderLabels(["L1 Thickness(ug/cm^2)", "L1 Compound","L2 Thickness(ug/cm^2)", "L2 Compound","L3 Thickness(ug/cm^2)", "L3 Compound"])
         targetLayout.addWidget(self.targetTable)
         self.targetGroup.setLayout(targetLayout)
         self.tablelayout.addWidget(self.targetGroup)

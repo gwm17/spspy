@@ -19,6 +19,9 @@ import matplotlib as mpl
 import sys
 import pickle
 
+DEFAULT_RHO_MIN: float = 69.0
+DEFAULT_RHO_MAX: float = 87.0
+
 class PlotType(Enum):
     PLOT_EX = auto()
     PLOT_KE = auto()
@@ -49,11 +52,12 @@ class SPSPlotGUI(QMainWindow):
         self.create_canvas()
         self.create_inputs()
         self.create_target_table()
+        self.update_plot()
         self.show()
 
     def create_canvas(self) -> None:
         self.canvas = MPLCanvas(self.plotTab, width=14, height=5, dpi=100)
-        self.plotLayout.addWidget(self.canvas, 5)
+        self.plotLayout.addWidget(self.canvas, 4)
 
     def create_menus(self) -> None:
         self.fileMenu = self.menuBar().addMenu("&File")
@@ -82,58 +86,67 @@ class SPSPlotGUI(QMainWindow):
         exportLevels.triggered.connect(self.handle_export_levels)
 
     def create_inputs(self) -> None:
-        inputLayout = QHBoxLayout()
+        inputLayout = QVBoxLayout()
         self.inputGroupBox = QGroupBox("Adjustable Inputs", self.plotTab)
-        rhoMinLabel = QLabel("Rho Min", self.inputGroupBox)
-        self.rhoMinInput = QDoubleSpinBox(self.inputGroupBox)
+
+        self.spsGroupBox = QGroupBox("SPS Parameters", self.inputGroupBox)
+        spsGroupLayout = QHBoxLayout()
+        rhoMinLabel = QLabel("<p>&rho;<sub>Min<\sub><\p>", self.spsGroupBox)
+        self.rhoMinInput = QDoubleSpinBox(self.spsGroupBox)
         self.rhoMinInput.setRange(0.0, 150.0)
+        self.rhoMinInput.setValue(DEFAULT_RHO_MIN)
+        self.sps.rhoMin = DEFAULT_RHO_MIN
         self.rhoMinInput.setSuffix(" cm")
-        rhoMaxLabel = QLabel("RhoMax", self.inputGroupBox)
-        self.rhoMaxInput = QDoubleSpinBox(self.inputGroupBox)
+        rhoMaxLabel = QLabel("<p>&rho;<sub>Max<\sub><\p>", self.spsGroupBox)
+        self.rhoMaxInput = QDoubleSpinBox(self.spsGroupBox)
         self.rhoMaxInput.setRange(0.0,150.0)
+        self.rhoMaxInput.setValue(DEFAULT_RHO_MAX)
+        self.sps.rhoMax = DEFAULT_RHO_MAX
         self.rhoMaxInput.setSuffix(" cm")
-        bkeLabel = QLabel("Beam KE", self.inputGroupBox)
-        self.bkeInput = QDoubleSpinBox(self.inputGroupBox)
+        bkeLabel = QLabel("<p>E<sub>beam<\sub><\p>", self.spsGroupBox)
+        self.bkeInput = QDoubleSpinBox(self.spsGroupBox)
         self.bkeInput.setRange(0.0, 500.0)
         self.bkeInput.setSuffix(" MeV")
-        bfieldLabel = QLabel("B-field", self.inputGroupBox)
-        self.bfieldInput = QDoubleSpinBox(self.inputGroupBox)
+        bfieldLabel = QLabel("B", self.spsGroupBox)
+        self.bfieldInput = QDoubleSpinBox(self.spsGroupBox)
         self.bfieldInput.setRange(0.0, 17.0)
         self.bfieldInput.setSuffix(" kG")
-        angleLabel = QLabel("Angle", self.inputGroupBox)
-        self.angleInput = QDoubleSpinBox(self.inputGroupBox)
+        angleLabel = QLabel("<p>&theta;<sub>SPS<\sub><\p>", self.spsGroupBox)
+        self.angleInput = QDoubleSpinBox(self.spsGroupBox)
         self.angleInput.setRange(0.0, 180.0)
         self.angleInput.setSuffix(" deg")
-        self.runButton = QPushButton("Set", self.inputGroupBox)
+        self.runButton = QPushButton("Set", self.spsGroupBox)
         self.runButton.clicked.connect(self.handle_run)
+        spsGroupLayout.addWidget(rhoMinLabel, 1)
+        spsGroupLayout.addWidget(self.rhoMinInput, 2)
+        spsGroupLayout.addWidget(rhoMaxLabel,1 )
+        spsGroupLayout.addWidget(self.rhoMaxInput, 2)
+        spsGroupLayout.addWidget(bkeLabel, 1)
+        spsGroupLayout.addWidget(self.bkeInput, 2)
+        spsGroupLayout.addWidget(bfieldLabel, 1)
+        spsGroupLayout.addWidget(self.bfieldInput, 2)
+        spsGroupLayout.addWidget(angleLabel, 1)
+        spsGroupLayout.addWidget(self.angleInput, 2)
+        spsGroupLayout.addWidget(self.runButton, 1)
+        self.spsGroupBox.setLayout(spsGroupLayout)
 
-        self.energyButtonGroup = QGroupBox("Ex/KE switch",self.plotTab)
+        self.energyButtonGroup = QGroupBox("Labels",self.plotTab)
         buttonLayout = QHBoxLayout()
-        self.exButton = QRadioButton("Excitation energy (MeV)", self.energyButtonGroup)
+        self.exButton = QRadioButton("Excitation Energy(MeV)", self.energyButtonGroup)
         self.exButton.toggled.connect(self.handle_ex_switch)
         self.exButton.toggle()
-        self.keButton = QRadioButton("Ejectile Kinetic energy (MeV)", self.energyButtonGroup)
+        self.keButton = QRadioButton("Ejectile KE(MeV)", self.energyButtonGroup)
         self.keButton.toggled.connect(self.handle_ke_switch)
-        self.zButton = QRadioButton("Focal Plane Z Shift (cm)", self.energyButtonGroup)
+        self.zButton = QRadioButton("FocalPlane Z-Shift(cm)", self.energyButtonGroup)
         self.zButton.toggled.connect(self.handle_z_switch)
         buttonLayout.addWidget(self.exButton)
         buttonLayout.addWidget(self.keButton)
         buttonLayout.addWidget(self.zButton)
         self.energyButtonGroup.setLayout(buttonLayout)
 
-        inputLayout.addWidget(rhoMinLabel)
-        inputLayout.addWidget(self.rhoMinInput)
-        inputLayout.addWidget(rhoMaxLabel)
-        inputLayout.addWidget(self.rhoMaxInput)
-        inputLayout.addWidget(bkeLabel)
-        inputLayout.addWidget(self.bkeInput)
-        inputLayout.addWidget(bfieldLabel)
-        inputLayout.addWidget(self.bfieldInput)
-        inputLayout.addWidget(angleLabel)
-        inputLayout.addWidget(self.angleInput)
-        inputLayout.addWidget(self.runButton)
-        self.inputGroupBox.setLayout(inputLayout)
+        inputLayout.addWidget(self.spsGroupBox)
         inputLayout.addWidget(self.energyButtonGroup)
+        self.inputGroupBox.setLayout(inputLayout)
 
         self.plotLayout.addWidget(self.inputGroupBox, 1)
 
@@ -142,7 +155,9 @@ class SPSPlotGUI(QMainWindow):
         tableLayout = QVBoxLayout()
         self.targetTable = QTableWidget(self.targetGroup)
         self.targetTable.setColumnCount(6)
-        self.targetTable.setHorizontalHeaderLabels(["Layer1 Thickness(ug/cm^2", "Layer1 (Z, A, S)","Layer2 Thickness(ug/cm^2", "Layer2 (Z, A, S)","Layer3 Thickness(ug/cm^2", "Layer3 (Z, A, S)"])
+        self.targetTable.setHorizontalHeaderLabels(["L1 Thickness(ug/cm^2)", "L1 Compound",
+                                                    "L2 Thickness(ug/cm^2)", "L2 Compound",
+                                                    "L3 Thickness(ug/cm^2)", "Layer3 Compound"])
         tableLayout.addWidget(self.targetTable)
         self.targetGroup.setLayout(tableLayout)
         self.targetLayout.addWidget(self.targetGroup)
@@ -257,6 +272,7 @@ class SPSPlotGUI(QMainWindow):
         self.canvas.axes.set_xlim(self.sps.rhoMin, self.sps.rhoMax)
         self.canvas.axes.set_yticks(range(1,len(self.sps.data)+2))
         self.canvas.axes.set_yticklabels(ylabels)
+        self.canvas.axes.set_xlabel(r"$\rho$ (cm)")
         self.canvas.draw()
 
     def update_inputs(self):
@@ -275,6 +291,8 @@ class SPSPlotGUI(QMainWindow):
                 self.targetTable.setCellWidget(row, 1+col*2, QLabel(str(layer)))
         self.targetTable.resizeColumnsToContents()
         self.targetTable.resizeRowsToContents()
+        
+
 
 def run_spsplot_ui():
     mpl.use("Qt5Agg")
