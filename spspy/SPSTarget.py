@@ -114,7 +114,6 @@ class SPSTarget:
         if angle == pi*0.5:
             return e_initial
 
-        print(f"z{zp} a{ap}")
         projectile = catima.Projectile(ap, zp)
         e_current = e_initial/ap
         for (idx, layer) in enumerate(self.layer_details):
@@ -123,12 +122,10 @@ class SPSTarget:
             if idx == rxn_layer:
                 material.thickness(self.layer_details[idx].thickness * self.UG2G / (2.0 * abs(cos(angle))))
                 e_current -= get_energyloss(projectile, material)
-                print("e_current: ", e_current*ap)
                 return e_initial - e_current*ap
             else:
                 material.thickness(self.layer_details[idx].thickness * self.UG2G / abs(cos(angle)))
                 e_current -= get_energyloss(projectile, material)
-                print("e_current2: ", e_current*ap)
 
         return e_initial - e_current*ap
 
