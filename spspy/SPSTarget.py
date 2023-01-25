@@ -104,7 +104,7 @@ class SPSTarget:
 
     def get_rxn_layer(self, zt: int, at: int) -> int:
         for idx, layer in enumerate(self.layer_details):
-            for (a, z, s) in layer.compound_list:
+            for (z, a, s) in layer.compound_list:
                 if at == a and zt == z:
                     return idx
         return INVALID_RXN_LAYER
@@ -114,19 +114,21 @@ class SPSTarget:
         if angle == pi*0.5:
             return e_initial
 
-        projectile = catima.Projectile(zp, ap)
+        print(f"z{zp} a{ap}")
+        projectile = catima.Projectile(ap, zp)
         e_current = e_initial/ap
-
         for (idx, layer) in enumerate(self.layer_details):
             material = catima.Material([(global_nuclear_data.get_data(z, a).mass, z, float(s)) for (z, a, s) in layer.compound_list])
             projectile.T(e_current) #catima wants MeV/u
             if idx == rxn_layer:
                 material.thickness(self.layer_details[idx].thickness * self.UG2G / (2.0 * abs(cos(angle))))
                 e_current -= get_energyloss(projectile, material)
+                print("e_current: ", e_current*ap)
                 return e_initial - e_current*ap
             else:
                 material.thickness(self.layer_details[idx].thickness * self.UG2G / abs(cos(angle)))
                 e_current -= get_energyloss(projectile, material)
+                print("e_current2: ", e_current*ap)
 
         return e_initial - e_current*ap
 
@@ -135,7 +137,7 @@ class SPSTarget:
         if angle == pi*0.5:
             return e_initial
 
-        projectile = catima.Projectile(zp, ap)
+        projectile = catima.Projectile(ap, zp)
         e_current = e_initial/ap
 
         for (idx, layer) in enumerate(self.layer_details[rxn_layer:], start=rxn_layer):
@@ -154,7 +156,7 @@ class SPSTarget:
         if angle == pi*0.5:
             return 0.0
 
-        projectile = catima.Projectile(zp, ap)
+        projectile = catima.Projectile(ap, zp)
         e_current = e_final/ap
         sublist = self.layer_details[rxn_layer:] #only care about rxn_layer -> exit
         reveresedRxnLayer = len(sublist) -1 #when reversed rxn_layer is the last layer
