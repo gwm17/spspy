@@ -24,7 +24,7 @@ def generate_nucleus_id(z: np.uint32, a: np.uint32) -> np.uint32 :
     return z*z + z + a if z > a else a*a + z
 
 class NuclearDataMap:
-    U2MEV: float = 931.4940954
+    U2MEV: float = 931.493614838475
     ELECTRON_MASS: float = 0.000548579909
 
     def __init__(self):

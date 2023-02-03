@@ -4,6 +4,8 @@ from .data.NuclearData import *
 from dataclasses import dataclass, field
 import csv
 
+DEG2RAD: float = np.pi / 180.0
+
 @dataclass
 class Excitation:
     excitation: float = 0.0 #MeV
@@ -45,7 +47,7 @@ class SPSPlot:
         
     def update_reactions(self) -> None:
         for datum in self.data.values():
-            datum.rxn.update_parameters(self.beamEnergy, self.spsAngle, self.magneticField)
+            datum.rxn.update_parameters(self.beamEnergy, self.spsAngle * DEG2RAD, self.magneticField)
             if datum.rxn.targetMaterial.name in self.targets:
                 datum.rxn.targetMaterial = self.targets[datum.rxn.targetMaterial.name]
             for ex in datum.excitations:
