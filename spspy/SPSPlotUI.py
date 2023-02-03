@@ -1,4 +1,4 @@
-from .SPSPlot import SPSPlot
+from .SPSPlot import SPSPlot, DEG2RAD
 from .SPSReaction import RxnParameters
 from .ui.MPLCanvas import MPLCanvas
 from .ui.ReactionDialog import ReactionDialog
@@ -236,7 +236,7 @@ class SPSPlotGUI(QMainWindow):
 
     def add_reaction(self, rxnParams: RxnParameters, targName: str) -> None:
         rxnParams.beamEnergy = self.bkeInput.value()
-        rxnParams.spsAngle = self.angleInput.value()
+        rxnParams.spsAngle = self.angleInput.value() * DEG2RAD
         rxnParams.magneticField = self.bfieldInput.value()
         self.sps.add_reaction(rxnParams, targName)
         self.update_plot()
