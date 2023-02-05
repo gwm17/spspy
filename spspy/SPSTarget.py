@@ -13,7 +13,7 @@ class TargetLayer:
     thickness: float = 0.0 #ug/cm^2
 
     def __str__(self) -> str:
-        return "".join([f"{global_nuclear_data.get_data(z, a,).prettyIsotopicSymbol}<sub>{s}<\sub>" for z, a, s in self.compound_list])
+        return "".join([f"{global_nuclear_data.get_data(z, a,).prettyIsotopicSymbol}<sub>{s}</sub>" for z, a, s in self.compound_list])
 
 #integrate energy loss starting from the final energy and running backwards to initial energy
 #catima does not natively provide this type of method
