@@ -1,4 +1,4 @@
-from .Spanc import Spanc, PeakType
+from .Spanc import Spanc, PeakType, DEG2RAD
 from .Fitter import convert_fit_points_to_arrays, convert_resid_points_to_arrays
 from .ui.MPLCanvas import MPLCanvas
 from .ui.ReactionDialog import ReactionDialog
@@ -311,7 +311,7 @@ class SpancGUI(QMainWindow):
             self.reactionTable.setCellWidget(row, 1, QLabel(str(rxn)))
             self.reactionTable.setItem(row, 2, QTableWidgetItem(str(rxn.params.beamEnergy)))
             self.reactionTable.setItem(row, 3, QTableWidgetItem(str(rxn.params.magneticField)))
-            self.reactionTable.setItem(row, 4, QTableWidgetItem(str(rxn.params.spsAngle)))
+            self.reactionTable.setItem(row, 4, QTableWidgetItem(str(rxn.params.spsAngle / DEG2RAD)))
         self.reactionTable.resizeColumnsToContents()
         self.reactionTable.resizeRowsToContents()
         
