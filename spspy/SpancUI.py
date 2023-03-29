@@ -116,6 +116,7 @@ class SpancGUI(QMainWindow):
         self.tablelayout.addWidget(self.targetGroup)
         self.targetTable.resizeColumnsToContents()
         self.targetTable.cellDoubleClicked.connect(self.handle_update_target)
+        self.targetTable.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
 
     def create_reaction_table(self) -> None:
         self.rxnGroup = QGroupBox("Reactions", self.tableTab)
@@ -128,6 +129,7 @@ class SpancGUI(QMainWindow):
         self.tablelayout.addWidget(self.rxnGroup)
         self.reactionTable.resizeColumnsToContents()
         self.reactionTable.cellDoubleClicked.connect(self.handle_update_reaction)
+        self.reactionTable.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
 
     def create_calibration_table(self) -> None:
         self.calGroup = QGroupBox("Calibration Peaks", self.tableTab)
@@ -140,6 +142,7 @@ class SpancGUI(QMainWindow):
         self.tablelayout.addWidget(self.calGroup)
         self.calibrationTable.resizeColumnsToContents()
         self.calibrationTable.cellDoubleClicked.connect(self.handle_update_calibration)
+        self.calibrationTable.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
 
     def create_output_table(self) -> None:
         self.outGroup = QGroupBox("Output Peaks", self.tableTab)
@@ -152,6 +155,7 @@ class SpancGUI(QMainWindow):
         self.tablelayout.addWidget(self.outGroup)
         self.outputTable.resizeColumnsToContents()
         self.outputTable.cellDoubleClicked.connect(self.handle_update_output)
+        self.outputTable.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
 
     def create_fit_result_text(self) -> None:
         self.fitTextGroup = QGroupBox("Fit Results", self.plotTab)
