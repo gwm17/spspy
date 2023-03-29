@@ -27,6 +27,7 @@ class PeakDialog(QDialog):
         if peakType == PeakType.CALIBRATION:
             self.create_calibration_inputs()
             if peak is not None:
+                self.setWindowTitle(f"Update A {peakType.value} Peak")
                 self.set_calibration_inputs(peak)
                 self.peakID = peak.peakID
                 self.buttonBox.accepted.connect(self.send_update_calibration_peak)
@@ -38,6 +39,7 @@ class PeakDialog(QDialog):
         elif peakType == PeakType.OUTPUT:
             self.create_output_inputs()
             if peak is not None:
+                self.setWindowTitle(f"Update A {peakType.value} Peak")
                 self.set_output_inputs(peak)
                 self.peakID = peak.peakID
                 self.buttonBox.accepted.connect(self.send_update_output_peak)
@@ -62,8 +64,8 @@ class PeakDialog(QDialog):
         self.uexInput = QDoubleSpinBox(self.inputGroupBox)
         self.uexInput.setDecimals(6)
         inputLayout.addRow("Position(mm)", self.xInput)
-        inputLayout.addRow("Position Stat. Error(mm)", self.uxstatInput)
         inputLayout.addRow("Position Sys. Error(mm)", self.uxsysInput)
+        inputLayout.addRow("Position Stat. Error(mm)", self.uxstatInput)
         inputLayout.addRow("Excitation Energy(MeV)", self.exInput)
         inputLayout.addRow("Excitation Energy Error(MeV)", self.uexInput)
         self.inputGroupBox.setLayout(inputLayout)
@@ -86,8 +88,8 @@ class PeakDialog(QDialog):
         self.ufwhmInput = QDoubleSpinBox(self.inputGroupBox)
         self.ufwhmInput.setDecimals(6)
         inputLayout.addRow("Position(mm)", self.xInput)
-        inputLayout.addRow("Position Stat. Error(mm)", self.uxstatInput)
         inputLayout.addRow("Position Sys. Error(mm)", self.uxsysInput)
+        inputLayout.addRow("Position Stat. Error(mm)", self.uxstatInput)
         inputLayout.addRow("Position FWHM(mm)", self.fwhmInput)
         inputLayout.addRow("Position FWHM Error(mm)", self.ufwhmInput)
         self.inputGroupBox.setLayout(inputLayout)
