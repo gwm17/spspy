@@ -79,6 +79,12 @@ class Spanc:
                 data.peakID = len(self.calibrations)
             self.calibrations[data.peakID] = data
         return
+    
+    def remove_calibration(self, data: Peak) -> bool:
+        if data.peakID not in self.calibrations.keys():
+            return False
+        self.calibrations.pop(data.peakID)
+        return True
 
     def add_output(self, data: Peak) -> None:
         if data.peakID == INVALID_PEAK_ID:

@@ -237,8 +237,11 @@ class SpancGUI(QMainWindow):
         peakData = self.spanc.calibrations[row]
         calDia = PeakDialog(PeakType.CALIBRATION, self.spanc.reactions.keys(), self, peak=peakData)
         calDia.new_peak.connect(self.spanc.add_calibration)
+        calDia.delete_peak.connect(self.spanc.remove_calibration)
         if calDia.exec():
             self.update_calibration_table()
+            if self.spanc.isFit == True:
+                self.handle_run_fit()
         return
 
     def handle_new_output(self) -> None:
