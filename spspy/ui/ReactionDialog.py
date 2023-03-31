@@ -5,6 +5,7 @@ from PySide6.QtWidgets import QVBoxLayout, QFormLayout, QGroupBox
 from PySide6.QtWidgets import QSpinBox, QDoubleSpinBox, QComboBox
 from PySide6.QtWidgets import QDialog, QDialogButtonBox
 from PySide6.QtCore import Signal
+from numpy import rad2deg
 
 MAXIMUM_NUCLEAR_Z: int = 110
 MAXIMUM_NUCLEAR_A: int = 270
@@ -116,6 +117,6 @@ class ReactionDialog(QDialog):
         self.aeInput.setValue(rxn.params.ejectile.A)
         self.aeInput.setEnabled(False)
         self.bkeInput.setValue(rxn.params.beamEnergy)
-        self.thetaInput.setValue(rxn.params.spsAngle)
+        self.thetaInput.setValue(rad2deg(rxn.params.spsAngle))
         self.bfieldInput.setValue(rxn.params.magneticField)
 	
