@@ -43,10 +43,10 @@ def get_reverse_energyloss(projectile: catima.Projectile, material: catima.Mater
             e_step = catima.dedx(projectile, material)*x_step
             e_initial += e_step*A_recip
             projectile.T(e_initial)
-            return (e_initial - e_out)*projectile.A()
+            return (e_initial - e_out)
 
         elif depth == ADAPTIVE_DEPTH_MAX:
-            return e_out*projectile.A()
+            return e_out
         else:
             e_step = catima.dedx(projectile, material)*x_step
             e_initial += e_step*A_recip
@@ -80,10 +80,10 @@ def get_energyloss(projectile: catima.Projectile, material: catima.Material) -> 
             e_step = catima.dedx(projectile, material)*x_step*A_recip
             e_final -= e_step
             projectile.T(e_final)
-            return (e_in - e_final)*projectile.A()
+            return (e_in - e_final)
         
         elif depth == ADAPTIVE_DEPTH_MAX:
-            return e_in*projectile.A()
+            return e_in
         
         else:
             e_step = catima.dedx(projectile, material)*x_step*A_recip
@@ -94,6 +94,7 @@ def get_energyloss(projectile: catima.Projectile, material: catima.Material) -> 
     
 
 class SPSTarget:
+    MEV2U: float = 1.0/931.493614838475
     UG2G: float = 1.0e-6 #convert ug to g
     def __init__(self, layers: list[TargetLayer], name: str = "default"):
         self.layer_details = layers
@@ -114,31 +115,33 @@ class SPSTarget:
         if angle == pi*0.5:
             return e_initial
 
-        projectile = catima.Projectile(ap, zp)
-        e_current = e_initial/ap
+        ap_u = ap * self.MEV2U
+        projectile = catima.Projectile(ap_u, zp)
+        e_current = e_initial/ap_u
         for (idx, layer) in enumerate(self.layer_details):
-            material = catima.Material([(global_nuclear_data.get_data(z, a).mass, z, float(s)) for (z, a, s) in layer.compound_list])
+            material = catima.Material([(global_nuclear_data.get_data(z, a).mass * self.MEV2U, z, float(s)) for (z, a, s) in layer.compound_list])
             projectile.T(e_current) #catima wants MeV/u
             if idx == rxn_layer:
                 material.thickness(self.layer_details[idx].thickness * self.UG2G / (2.0 * abs(cos(angle))))
                 e_current -= get_energyloss(projectile, material)
-                return e_initial - e_current*ap
+                return e_initial - e_current*ap_u
             else:
                 material.thickness(self.layer_details[idx].thickness * self.UG2G / abs(cos(angle)))
                 e_current -= get_energyloss(projectile, material)
 
-        return e_initial - e_current*ap
+        return e_initial - e_current*ap_u
 
     #Calculate energy loss for a particle leaving the target, from rxn layer (halfway through rxn layer) to end
     def get_outgoing_energyloss(self, zp: int, ap: float, e_initial: float, rxn_layer: int, angle: float) -> float:
         if angle == pi*0.5:
             return e_initial
 
-        projectile = catima.Projectile(ap, zp)
-        e_current = e_initial/ap
+        ap_u = ap * self.MEV2U
+        projectile = catima.Projectile(ap_u, zp)
+        e_current = e_initial/ap_u
 
         for (idx, layer) in enumerate(self.layer_details[rxn_layer:], start=rxn_layer):
-            material = catima.Material([(global_nuclear_data.get_data(z, a).mass, z, float(s)) for (z, a, s) in layer.compound_list])
+            material = catima.Material([(global_nuclear_data.get_data(z, a).mass * self.MEV2U, z, float(s)) for (z, a, s) in layer.compound_list])
             projectile.T(e_current) #catima wants MeV/u
             if idx == rxn_layer:
                 material.thickness(self.layer_details[idx].thickness * self.UG2G / (2.0 * abs(cos(angle))))
@@ -146,19 +149,20 @@ class SPSTarget:
                 material.thickness(self.layer_details[idx].thickness * self.UG2G / abs(cos(angle)))
             e_current -= get_energyloss(projectile, material)
 
-        return e_initial - e_current*ap
+        return e_initial - e_current*ap_u
 
     #Calculate reverse energy loss (energy gain) for a particle that left the target after a reaction (end -> rxn_layer)
     def get_outgoing_reverse_energyloss(self, zp: int, ap: float, e_final: float, rxn_layer: int, angle: float) -> float:
         if angle == pi*0.5:
             return 0.0
 
-        projectile = catima.Projectile(ap, zp)
-        e_current = e_final/ap
+        ap_u = ap * self.MEV2U
+        projectile = catima.Projectile(ap_u, zp)
+        e_current = e_final/ap_u
         sublist = self.layer_details[rxn_layer:] #only care about rxn_layer -> exit
         reveresedRxnLayer = len(sublist) -1 #when reversed rxn_layer is the last layer
         for (idx, layer) in reversed(list(enumerate(sublist))):
-            material = catima.Material([(global_nuclear_data.get_data(z, a).mass, z, float(s)) for (z, a, s) in layer.compound_list])
+            material = catima.Material([(global_nuclear_data.get_data(z, a).mass * self.MEV2U, z, float(s)) for (z, a, s) in layer.compound_list])
             projectile.T(e_current) #catima wants MeV/u
             if idx == reveresedRxnLayer:
                 material.thickness(self.layer_details[idx].thickness * self.UG2G / (2.0 * abs(cos(angle))))
@@ -166,5 +170,5 @@ class SPSTarget:
                 material.thickness(self.layer_details[idx].thickness * self.UG2G / abs(cos(angle)))
             e_current += get_reverse_energyloss(projectile, material)
 
-        return e_current*ap - e_final
+        return e_current*ap_u - e_final
 
