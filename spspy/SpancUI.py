@@ -1,4 +1,4 @@
-from .Spanc import Spanc, PeakType
+from .Spanc import Spanc, PeakType, DEG2RAD
 from .Fitter import convert_fit_points_to_arrays, convert_resid_points_to_arrays
 from .ui.MPLCanvas import MPLCanvas
 from .ui.ReactionDialog import ReactionDialog
@@ -116,6 +116,7 @@ class SpancGUI(QMainWindow):
         self.tablelayout.addWidget(self.targetGroup)
         self.targetTable.resizeColumnsToContents()
         self.targetTable.cellDoubleClicked.connect(self.handle_update_target)
+        self.targetTable.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
 
     def create_reaction_table(self) -> None:
         self.rxnGroup = QGroupBox("Reactions", self.tableTab)
@@ -128,30 +129,33 @@ class SpancGUI(QMainWindow):
         self.tablelayout.addWidget(self.rxnGroup)
         self.reactionTable.resizeColumnsToContents()
         self.reactionTable.cellDoubleClicked.connect(self.handle_update_reaction)
+        self.reactionTable.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
 
     def create_calibration_table(self) -> None:
         self.calGroup = QGroupBox("Calibration Peaks", self.tableTab)
         calLayout = QVBoxLayout()
         self.calibrationTable = QTableWidget(self.calGroup)
-        self.calibrationTable.setColumnCount(8)
-        self.calibrationTable.setHorizontalHeaderLabels(["Reaction","x(mm)","ux stat.(mm)","ux sys.(mm)","rho(cm)","urho(cm)","Ex(MeV)","uEx(MeV)"])
+        self.calibrationTable.setColumnCount(9)
+        self.calibrationTable.setHorizontalHeaderLabels(["Peak ID","Reaction","x(mm)","ux stat.(mm)","ux sys.(mm)","rho(cm)","urho(cm)","Ex(MeV)","uEx(MeV)"])
         calLayout.addWidget(self.calibrationTable)
         self.calGroup.setLayout(calLayout)
         self.tablelayout.addWidget(self.calGroup)
         self.calibrationTable.resizeColumnsToContents()
         self.calibrationTable.cellDoubleClicked.connect(self.handle_update_calibration)
+        self.calibrationTable.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
 
     def create_output_table(self) -> None:
         self.outGroup = QGroupBox("Output Peaks", self.tableTab)
         outLayout = QVBoxLayout()
         self.outputTable = QTableWidget(self.outGroup)
-        self.outputTable.setColumnCount(12)
-        self.outputTable.setHorizontalHeaderLabels(["Reaction","x(mm)","ux stat.(mm)","ux sys.(mm)","rho(cm)","urho(cm)","Ex(MeV)","uEx(MeV)","FWHM(mm)","uFWHM(mm)","FWHM(MeV)","uFWHM(MeV)"])
+        self.outputTable.setColumnCount(13)
+        self.outputTable.setHorizontalHeaderLabels(["Peak ID", "Reaction","x(mm)","ux stat.(mm)","ux sys.(mm)","rho(cm)","urho(cm)","Ex(MeV)","uEx(MeV)","FWHM(mm)","uFWHM(mm)","FWHM(MeV)","uFWHM(MeV)"])
         outLayout.addWidget(self.outputTable)
         self.outGroup.setLayout(outLayout)
         self.tablelayout.addWidget(self.outGroup)
         self.outputTable.resizeColumnsToContents()
         self.outputTable.cellDoubleClicked.connect(self.handle_update_output)
+        self.outputTable.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
 
     def create_fit_result_text(self) -> None:
         self.fitTextGroup = QGroupBox("Fit Results", self.plotTab)
@@ -234,11 +238,15 @@ class SpancGUI(QMainWindow):
         return
         
     def handle_update_calibration(self, row: int, col: int) -> None:
-        peakData = self.spanc.calibrations[row]
+        peakID = int(self.calibrationTable.item(row, 0).text())
+        peakData = self.spanc.calibrations[peakID]
         calDia = PeakDialog(PeakType.CALIBRATION, self.spanc.reactions.keys(), self, peak=peakData)
         calDia.new_peak.connect(self.spanc.add_calibration)
+        calDia.delete_peak.connect(self.spanc.remove_calibration)
         if calDia.exec():
             self.update_calibration_table()
+            if self.spanc.isFit == True:
+                self.handle_run_fit()
         return
 
     def handle_new_output(self) -> None:
@@ -249,7 +257,8 @@ class SpancGUI(QMainWindow):
         return
 
     def handle_update_output(self, row: int, col: int) -> None:
-        peakData = self.spanc.calibrations[row]
+        peakID = int(self.calibrationTable.item(row, 0).text())
+        peakData = self.spanc.outputs[peakID]
         outDia = PeakDialog(PeakType.OUTPUT, self.spanc.reactions.keys(), self, peak=peakData)
         outDia.new_peak.connect(self.spanc.add_output)
         if outDia.exec():
@@ -311,7 +320,7 @@ class SpancGUI(QMainWindow):
             self.reactionTable.setCellWidget(row, 1, QLabel(str(rxn)))
             self.reactionTable.setItem(row, 2, QTableWidgetItem(str(rxn.params.beamEnergy)))
             self.reactionTable.setItem(row, 3, QTableWidgetItem(str(rxn.params.magneticField)))
-            self.reactionTable.setItem(row, 4, QTableWidgetItem(str(rxn.params.spsAngle)))
+            self.reactionTable.setItem(row, 4, QTableWidgetItem(str(rxn.params.spsAngle / DEG2RAD)))
         self.reactionTable.resizeColumnsToContents()
         self.reactionTable.resizeRowsToContents()
         
@@ -319,14 +328,15 @@ class SpancGUI(QMainWindow):
         self.calibrationTable.setRowCount(len(self.spanc.calibrations))
         self.calibrationTable.setVerticalHeaderLabels(self.spanc.calibrations.keys())
         for row, peak in enumerate(self.spanc.calibrations.values()):
-            self.calibrationTable.setItem(row, 0, QTableWidgetItem(peak.rxnName))
-            self.calibrationTable.setItem(row, 1, QTableWidgetItem(str(peak.position)))
-            self.calibrationTable.setItem(row, 2, QTableWidgetItem(str(peak.positionErrStat)))
-            self.calibrationTable.setItem(row, 3, QTableWidgetItem(str(peak.positionErrSys)))
-            self.calibrationTable.setItem(row, 4, QTableWidgetItem(str(peak.rho)))
-            self.calibrationTable.setItem(row, 5, QTableWidgetItem(str(peak.rhoErr)))
-            self.calibrationTable.setItem(row, 6, QTableWidgetItem(str(peak.excitation)))
-            self.calibrationTable.setItem(row, 7, QTableWidgetItem(str(peak.excitationErr)))
+            self.calibrationTable.setItem(row, 0, QTableWidgetItem(str(peak.peakID)))
+            self.calibrationTable.setItem(row, 1, QTableWidgetItem(peak.rxnName))
+            self.calibrationTable.setItem(row, 2, QTableWidgetItem(str(peak.position)))
+            self.calibrationTable.setItem(row, 3, QTableWidgetItem(str(peak.positionErrStat)))
+            self.calibrationTable.setItem(row, 4, QTableWidgetItem(str(peak.positionErrSys)))
+            self.calibrationTable.setItem(row, 5, QTableWidgetItem(str(peak.rho)))
+            self.calibrationTable.setItem(row, 6, QTableWidgetItem(str(peak.rhoErr)))
+            self.calibrationTable.setItem(row, 7, QTableWidgetItem(str(peak.excitation)))
+            self.calibrationTable.setItem(row, 8, QTableWidgetItem(str(peak.excitationErr)))
         self.calibrationTable.resizeColumnsToContents()
         self.calibrationTable.resizeRowsToContents()
 
@@ -334,18 +344,19 @@ class SpancGUI(QMainWindow):
         self.outputTable.setRowCount(len(self.spanc.outputs))
         self.outputTable.setVerticalHeaderLabels(self.spanc.outputs.keys())
         for row, peak in enumerate(self.spanc.outputs.values()):
-            self.outputTable.setItem(row, 0, QTableWidgetItem(peak.rxnName))
-            self.outputTable.setItem(row, 1, QTableWidgetItem(str(peak.position)))
-            self.outputTable.setItem(row, 2, QTableWidgetItem(str(peak.positionErrStat)))
-            self.outputTable.setItem(row, 3, QTableWidgetItem(str(peak.positionErrSys)))
-            self.outputTable.setItem(row, 4, QTableWidgetItem(str(peak.rho)))
-            self.outputTable.setItem(row, 5, QTableWidgetItem(str(peak.rhoErr)))
-            self.outputTable.setItem(row, 6, QTableWidgetItem(str(peak.excitation)))
-            self.outputTable.setItem(row, 7, QTableWidgetItem(str(peak.excitationErr)))
-            self.outputTable.setItem(row, 8, QTableWidgetItem(str(peak.positionFWHM)))
-            self.outputTable.setItem(row, 9, QTableWidgetItem(str(peak.positionFWHMErr)))
-            self.outputTable.setItem(row, 10, QTableWidgetItem(str(peak.excitationFWHM)))
-            self.outputTable.setItem(row, 11, QTableWidgetItem(str(peak.excitationFWHMErr)))
+            self.outputTable.setItem(row, 0, QTableWidgetItem(str(peak.peakID)))
+            self.outputTable.setItem(row, 1, QTableWidgetItem(peak.rxnName))
+            self.outputTable.setItem(row, 2, QTableWidgetItem(str(peak.position)))
+            self.outputTable.setItem(row, 3, QTableWidgetItem(str(peak.positionErrStat)))
+            self.outputTable.setItem(row, 4, QTableWidgetItem(str(peak.positionErrSys)))
+            self.outputTable.setItem(row, 5, QTableWidgetItem(str(peak.rho)))
+            self.outputTable.setItem(row, 6, QTableWidgetItem(str(peak.rhoErr)))
+            self.outputTable.setItem(row, 7, QTableWidgetItem(str(peak.excitation)))
+            self.outputTable.setItem(row, 8, QTableWidgetItem(str(peak.excitationErr)))
+            self.outputTable.setItem(row, 9, QTableWidgetItem(str(peak.positionFWHM)))
+            self.outputTable.setItem(row, 10, QTableWidgetItem(str(peak.positionFWHMErr)))
+            self.outputTable.setItem(row, 11, QTableWidgetItem(str(peak.excitationFWHM)))
+            self.outputTable.setItem(row, 12, QTableWidgetItem(str(peak.excitationFWHMErr)))
         self.outputTable.resizeColumnsToContents()
         self.outputTable.resizeRowsToContents()
 

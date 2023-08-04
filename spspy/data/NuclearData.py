@@ -53,7 +53,7 @@ def get_excitations(Z: int, A: int) -> list[float]:
     levels = []
     text = ''
     symbol = global_nuclear_data.get_data(Z, A).isotopicSymbol
-    site = req.get(f"https://www.nndc.bnl.gov/nudat2/getdatasetClassic.jsp?nucleus={symbol}&unc=nds")
+    site = req.get(f"https://www.nndc.bnl.gov/nudat3/getdatasetClassic.jsp?nucleus={symbol}&unc=nds")
     contents = xhtml.fromstring(site.content)
     tables = contents.xpath("//table")
     rows = tables[2].xpath("./tr")

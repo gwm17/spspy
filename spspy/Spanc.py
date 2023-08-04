@@ -7,6 +7,7 @@ import numpy as np
 from enum import Enum
 
 INVALID_PEAK_ID: int = -1
+DEG2RAD: float = np.pi / 180.0
 
 class PeakType(Enum):
     CALIBRATION = "Calibration"
@@ -58,6 +59,7 @@ class Spanc:
             print("Cannot create reaction with non-existant target ", targetName)
             return
         key = f"Rxn{len(self.reactions)}"
+        params.spsAngle *= DEG2RAD
         rxn = Reaction(params, target=self.targets[targetName])
         self.reactions[key] = rxn
 
@@ -65,7 +67,7 @@ class Spanc:
         if rxnName in self.reactions:
             rxn = self.reactions[rxnName]
             rxn.params.beamEnergy = beamEnergy
-            rxn.params.spsAngle = spsAngle
+            rxn.params.spsAngle = spsAngle * DEG2RAD
             rxn.params.magneticField = magneticField
 
     def add_calibration(self, data: Peak) -> None:
@@ -77,6 +79,12 @@ class Spanc:
                 data.peakID = len(self.calibrations)
             self.calibrations[data.peakID] = data
         return
+    
+    def remove_calibration(self, data: Peak) -> bool:
+        if data.peakID not in self.calibrations.keys():
+            return False
+        self.calibrations.pop(data.peakID)
+        return True
 
     def add_output(self, data: Peak) -> None:
         if data.peakID == INVALID_PEAK_ID:

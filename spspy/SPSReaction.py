@@ -89,7 +89,6 @@ class Reaction:
         beamRxnEnergy = self.params.beamEnergy - self.targetMaterial.get_incoming_energyloss(self.params.projectile.Z, self.params.projectile.mass, self.params.beamEnergy, self.rxnLayer, 0.0)
         beamRxnP = sqrt(beamRxnEnergy * (beamRxnEnergy + 2.0 * self.params.projectile.mass))
 
-
         residRxnEnergy = beamRxnEnergy + self.params.projectile.mass + self.params.target.mass - ejectileRxnEnergy - self.params.ejectile.mass
         residRxnP2 = beamRxnP**2.0 + ejectileRxnP**2.0 - 2.0 * ejectileRxnP * beamRxnP * cos(self.params.spsAngle)
         return sqrt(residRxnEnergy**2.0 - residRxnP2) - self.residual.mass
