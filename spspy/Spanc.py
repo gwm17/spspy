@@ -127,3 +127,81 @@ class Spanc:
             rxn = self.reactions[calibration.rxnName]
             calibration.rho = rxn.convert_ejectile_KE_2_rho(rxn.calculate_ejectile_KE(calibration.excitation))
             calibration.rhoErr = np.abs(rxn.convert_ejectile_KE_2_rho(rxn.calculate_ejectile_KE(calibration.excitation + calibration.excitationErr)) - calibration.rho)
+
+    def get_excitation_curves(self,
+                              x_min: float = -300.0,
+                              x_max: float = 300.0,
+                              n_bins: int = 601):
+        """
+        Compute excitation-energy curves for every reaction by evaluating
+        Ex = reaction.calculate_excitation( rho(x) ) across a grid of
+        focal-plane positions.
+
+        Returns:
+            x_vals: array of FP bin centers
+            ex_curves: { rxn_name: Ex_array_in_MeV }
+        """
+        # Bin centers (e.g. 601 values from -300 to 300)
+        x_vals = np.linspace(x_min, x_max, n_bins)
+
+        # ρ(x) uses your fitted polynomial a0 + a1 x + ... + aN x^N
+        params = self.fitter.get_parameters()   # [a0, a1, ..., aN]
+        rho_vals = np.polyval(params[::-1], x_vals)  # reverse order for numpy poly
+
+        ex_curves: dict[str, np.ndarray] = {}
+
+        for rxn_name, rxn in self.reactions.items():
+            ex_vals = np.array(
+                [rxn.calculate_excitation(rho) for rho in rho_vals],
+                dtype=float,
+            )
+            ex_curves[rxn_name] = ex_vals
+
+        return x_vals, ex_curves
+    
+    def export_excitation_csv(self,
+                            filename: str,
+                            x_min: float = -300.0,
+                            x_max: float = 300.0,
+                            n_bins: int = 601):
+        """
+        Export excitation-energy calibration table as CSV.
+
+        CSV format:
+            FP_x_mm, Ex_rxn1_MeV, Ex_rxn2_MeV, ...
+
+        FP_x_mm runs from x_min to x_max with n_bins steps (inclusive).
+        """
+        import csv
+        import numpy as np
+
+        # Generate FP positions (601 values from -300 to 300)
+        x_vals = np.linspace(x_min, x_max, n_bins)
+
+        # Compute rho(x) using fitted polynomial
+        params = self.fitter.get_parameters()  # [a0, a1, ..., aN]
+        rho_vals = np.polyval(params[::-1], x_vals)
+
+        # Compute excitation for each reaction
+        rxn_names = list(self.reactions.keys())
+        ex_mev = {rxn: [] for rxn in rxn_names}
+
+        for rho in rho_vals:
+            for rxn_name, rxn in self.reactions.items():
+                ex = rxn.calculate_excitation(rho)
+                ex_mev[rxn_name].append(ex)
+
+        # Write CSV
+        with open(filename, "w", newline="") as csvfile:
+            writer = csv.writer(csvfile)
+
+            # Header row
+            header = ["x_mm"] + [f"Ex_{rxn}_MeV" for rxn in rxn_names]
+            writer.writerow(header)
+
+            # Data rows
+            for i, x in enumerate(x_vals):
+                row = [f"{x:.6f}"]
+                for rxn in rxn_names:
+                    row.append(f"{ex_mev[rxn][i]:.9f}")
+                writer.writerow(row)

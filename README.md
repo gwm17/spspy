@@ -2,9 +2,7 @@
 SPSPy is a Python based package of tools for use with the Super-Enge Split-Pole Spectrograph at FSU. Much of the code here is based on Java programs originally written at Yale University by D.W. Visser, C.M. Deibel, and others. Currently the package contains SPSPlot, a tool aimed at informing users which states should appear at the focal plane of the SESPS, and SPANC, a tool for calibrating the position spectra from the focal plane.
 
 ## Depencencies and Requirements
-The requirements for running SPSPy are outlined in the requirements.txt file located in the repository. It is recommended to install these to a local virtual environment using `pip install -r requirements.txt`. For conda use the environments.yml file to create a conda environment for SPSPy. Simply run `conda env create -f environment.yml` from the SPSPy directory. conda will make a new virtual environment named spsenv with the dependencies outlined in environments.yml. If you already have an environment named spsenv or would like to change the name simply edit the first line of the enviornments.yml.
-
-The recommended install for SPSPy dependencies is via pip. 
+To ensure capability, use python 3.14. The requirements for running SPSPy are outlined in the requirements.txt file located in the repository. It is recommended to install these to a local virtual environment using `pip install -r requirements.txt`.
 
 ### Creating a virtual environment with pip
 To create a virtual environment with pip in the terminal for MacOS or Linux use `python3 -m venv env` to create a local virtual environment named `env` (or whatever name you'd like), or on Windows use `py -m venv env` to do the same. To activate your new environment run `source env/bin/activate` in MacOS or Linux, or `.\env\Scripts\activate`. Now you can run the above `pip` command to install all dependencies to the virtual environment. To leave the virtual environment use the command `deactivate` in your terminal.

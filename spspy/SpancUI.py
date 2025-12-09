@@ -12,7 +12,7 @@ from PySide6.QtWidgets import QPushButton, QTextEdit, QSpinBox
 from PySide6.QtWidgets import QFileDialog
 from PySide6.QtGui import QAction
 
-from qdarktheme import load_stylesheet, load_palette
+import qdarkstyle
 import matplotlib as mpl
 import numpy as np
 from numpy.typing import NDArray
@@ -95,6 +95,17 @@ class SpancGUI(QMainWindow):
         fitOptionLayout.addWidget(QLabel("Polynomial Order", self.fitOptionGroup))
         fitOptionLayout.addWidget(self.fitOrderBox)
         fitOptionLayout.addWidget(self.fitButton)
+
+        # NEW: button to plot excitation curves for all reactions
+        self.exCurveButton = QPushButton("Plot Ex vs x", self.fitOptionGroup)
+        self.exCurveButton.clicked.connect(self.plot_excitation_curves)
+        fitOptionLayout.addWidget(self.exCurveButton)
+
+        # Button to export excitation calibration CSV
+        self.exportCSVButton = QPushButton("Export Ex(x) CSV", self.fitOptionGroup)
+        self.exportCSVButton.clicked.connect(self.handle_export_excitation_csv)
+        fitOptionLayout.addWidget(self.exportCSVButton)
+
         self.fitOptionGroup.setLayout(fitOptionLayout)
 
         fitLayout.addWidget(QLabel("Fit", self.fitCanvas))
@@ -374,13 +385,48 @@ class SpancGUI(QMainWindow):
                           f"## Parameter Uncertanties (ua0 -> uaN): {np.array_str(self.spanc.fitter.get_parameter_errors(), precision=3)} \n \n"
                           f"## Residuals (x0 -> xN): {np.array_str(residuals, precision=3)} \n \n"
                           f"## Studentized Residuals (x0 -> xN): {np.array_str(studentizedResiduals, precision=3)} \n \n")
+        
         self.fitResultText.setMarkdown(markdownString)
+
+    def plot_excitation_curves(self):
+        # Require a fit so rho(x) is defined
+        if not self.spanc.isFit:
+            print("Run the calibration fit first before plotting Ex vs x.")
+            return
+
+        # Compute Ex at 600 bin centers from -300 to 300 for all reactions
+        x_vals, ex_curves = self.spanc.get_excitation_curves(
+            x_min=-300.0,
+            x_max=300.0,
+            n_bins=600,
+        )
+
+        self.fitCanvas.axes.cla()
+        for rxn_name, ex_vals in ex_curves.items():
+            self.fitCanvas.axes.plot(x_vals, ex_vals, label=rxn_name)
+
+        self.fitCanvas.axes.set_xlabel(r"$x$ (mm)")
+        self.fitCanvas.axes.set_ylabel(r"$E_x$ (MeV)")
+        self.fitCanvas.axes.set_title("Excitation energy vs focal-plane position")
+        self.fitCanvas.axes.grid(True)
+        self.fitCanvas.axes.legend()
+        self.fitCanvas.fig.tight_layout()
+        self.fitCanvas.draw()
+
+    def handle_export_excitation_csv(self):
+        fileName = QFileDialog.getSaveFileName(
+            self, "Export Excitation CSV", "./", "CSV Files (*.csv)"
+        )
+        if fileName[0]:
+            self.spanc.export_excitation_csv(fileName[0])
+            print(f"Exported excitation calibration to {fileName[0]}")
 
 def run_spanc_ui() :
     mpl.use("Qt5Agg")
     app = QApplication.instance()
     if not app:
         app = QApplication(sys.argv)
-        app.setStyleSheet(load_stylesheet())
+        # app.setStyleSheet(load_stylesheet())
+        app.setStyleSheet(qdarkstyle.load_stylesheet())
     window = SpancGUI()
     sys.exit(app.exec_())

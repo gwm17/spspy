@@ -13,7 +13,7 @@ from PySide6.QtWidgets import QDoubleSpinBox
 from PySide6.QtWidgets import QFileDialog
 from PySide6.QtGui import QAction
 
-from qdarktheme import load_stylesheet
+import qdarkstyle
 from enum import Enum, auto
 import matplotlib as mpl
 import sys
@@ -299,6 +299,7 @@ def run_spsplot_ui():
     app = QApplication.instance()
     if not app:
         app = QApplication(sys.argv)
-        app.setStyleSheet(load_stylesheet())
+        # app.setStyleSheet(load_stylesheet())
+        app.setStyleSheet(qdarkstyle.load_stylesheet())
     window = SPSPlotGUI()
     sys.exit(app.exec_())
